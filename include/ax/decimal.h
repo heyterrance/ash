@@ -9,6 +9,7 @@
 
 #include "c_utils.h"
 #include "compare_base.h"
+#include "ax_math.h"
 
 namespace details {
 
@@ -98,6 +99,9 @@ public:
     self_type from_string(const char* src)
     {
         long long mant = 0;
+        if (*src == '-')
+            return -from_string(++src);
+
         while (*src != '\0' and *src != '.') {
             mant = (mant * 10) + (*src++ - '0');
         }
@@ -158,6 +162,13 @@ public:
     self_type& operator=(T value)
     {
         value_ = value * Multiplier;
+        return *this;
+    }
+
+    constexpr
+    self_type& operator-()
+    {
+        value_ = -value_;
         return *this;
     }
 
@@ -283,9 +294,18 @@ fixed_decimal<E> operator*(const fixed_decimal<E>& src, T m)
 
 template<unsigned char E>
 inline
-std::ostream& operator<<(std::ostream& s, const fixed_decimal<E>& src)
+std::ostream& operator<<(std::ostream& out, const fixed_decimal<E>& src)
 {
-    return s << src.as_double() << " (" << src.as_llong() << ")";
+    static const auto mul = src.multiplier();
+    const long long x = (src.as_llong() / mul) * mul;
+    const long long r = src.as_llong() - x;
+    const unsigned r_dig = num_digits(r);
+    if (src.as_llong() < 0)
+        out << '-';
+    out << (x / mul) << '.' << std::abs(r);
+    for (unsigned i = (r_dig + 1); i < src.exponent(); ++i)
+        out << '0';
+    return out;
 }
 
 } // namespace ax

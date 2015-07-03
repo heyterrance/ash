@@ -1,4 +1,6 @@
 
+#include <iostream>
+
 #include <Catch/catch.hpp>
 
 #include <ax/decimal.h>
@@ -33,4 +35,6 @@ TEST_CASE("fixed_decimal_static_asserts", "[fixed_decimal]")
     static_assert(D3::from_string("1.234") == D6(1.234), "from_string");
     static_assert(D3::from_string("1.234567") == D6(1.234), "from_string");
     static_assert(D8::from_string("1.234567") == D8(1.234567), "from_string");
+    static_assert(D8::from_string("-0.5") == -D8(0.5), "from_string");
+    static_assert(D8::from_string("-0.5") < 0, "from_string");
 }
