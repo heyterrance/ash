@@ -1,6 +1,6 @@
-#include <type_traits>
-
 #pragma once
+
+#include <type_traits>
 
 namespace details {
 
