@@ -26,21 +26,21 @@ SCENARIO("fixed string insertions", "[fixed_string]")
         WHEN("a small string is appended") {
             s.append("a");
             THEN("the string is added") {
-                REQUIRE(s.length() == 1);
+                CHECK(s.length() == 1);
             }
         }
         WHEN("two small strings are appened") {
             s.append("a").append("b");
             THEN("the strings are in the correct order") {
-                REQUIRE(s.length() == 2);
-                REQUIRE(s.str() == "ab");
+                CHECK(s.length() == 2);
+                CHECK(s.str() == "ab");
             }
         }
         WHEN("another fixed string is appened") {
             s.append("a").append(S8("bcd"));
             THEN("all the contents are appened") {
-                REQUIRE(s.length() == 4);
-                REQUIRE(s.str() == "abcd");
+                CHECK(s.length() == 4);
+                CHECK(s.str() == "abcd");
             }
         }
     }

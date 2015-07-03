@@ -15,7 +15,7 @@ SCENARIO("memory pool reuses memory", "[memory_pool]")
     GIVEN("an uninitialized memory pool") {
         WHEN("an instance is allocated") {
             pooled* ptr = std::make_unique<pooled>().get();
-            REQUIRE(std::make_unique<pooled>().get() == ptr);
+            CHECK(std::make_unique<pooled>().get() == ptr);
         }
         WHEN("two instances are allocated") {
             std::set<pooled*> used;
@@ -28,7 +28,7 @@ SCENARIO("memory pool reuses memory", "[memory_pool]")
             }
             for (unsigned i = 0; i != 8; ++i) {
                 auto it = used.find(std::make_unique<pooled>().get());
-                REQUIRE(it != used.end());
+                CHECK(it != used.end());
             }
         }
     }
