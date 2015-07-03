@@ -31,6 +31,7 @@ struct pooled : ax::memory_pooled<pooled>
 
 void test_pool()
 {
+    pooled::fill_pool(80);
     for (unsigned i = 0; i != 4; ++i) {
         std::unique_ptr<pooled> p(new pooled);
     }
