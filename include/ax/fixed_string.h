@@ -3,15 +3,18 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <cstring>
 #include <ostream>
 
+#include "compare_base.h"
+
 namespace ax {
 
 template<std::size_t Capacity, typename CharT = char>
-class fixed_string
+class fixed_string : compareable<fixed_string<Capacity, CharT>>
 {
 public:
     using value_type = CharT;
@@ -129,6 +132,23 @@ public:
     fixed_string& append(const CharT* s)
     {
         return insert(length(), s);
+    }
+
+    template<std::size_t M>
+    bool operator==(const fixed_string<M, CharT>& rhs) const
+    {
+        if (length() != rhs.length()) return false;
+        for (std::size_t i = 0; i != rhs.length(); ++i)
+            if (data_[i] != rhs[i]) return false;
+        return true;
+    }
+
+    template<std::size_t M>
+    constexpr
+    bool operator<(const fixed_string<M, CharT>& rhs) const
+    {
+        return std::lexicographical_compare(
+                begin(), end(), rhs.begin(), rhs.end());
     }
 
     friend std::ostream& operator<<(std::ostream&, const fixed_string&);

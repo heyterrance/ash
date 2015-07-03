@@ -44,4 +44,9 @@ SCENARIO("fixed string insertions", "[fixed_string]")
             }
         }
     }
+
+    GIVEN("a non-empty string") {
+        S16 s("123");
+        REQUIRE_FALSE(s.empty());
+    }
 }

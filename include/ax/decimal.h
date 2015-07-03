@@ -8,6 +8,7 @@
 #include <string>
 
 #include "c_utils.h"
+#include "compare_base.h"
 
 namespace details {
 
@@ -24,7 +25,7 @@ static_assert(scaling_factor<int, 10, 4, 3>::value == 1, "Wrong scaling factor."
 namespace ax {
 
 template<unsigned char E>
-class fixed_decimal
+class fixed_decimal : compareable<fixed_decimal<E>>
 {
 private:
     using self_type = fixed_decimal<E>;
@@ -131,13 +132,6 @@ public:
         return value_ == (value * Multiplier);
     }
 
-    template<typename T>
-    constexpr
-    bool operator!=(const T& value) const
-    {
-        return not (*this == value);
-    }
-
     template<
         unsigned char F,
         long long FM = other_mul<F>::value,
@@ -155,27 +149,6 @@ public:
     bool operator<(T value) const
     {
         return value_ < (value * Multiplier);
-    }
-
-    template<typename T>
-    constexpr
-    bool operator<=(const T& value) const
-    {
-        return (*this == value) or (*this < value);
-    }
-
-    template<typename T>
-    constexpr
-    bool operator>(const T& value) const
-    {
-        return not (*this <= value);
-    }
-
-    template<typename T>
-    constexpr
-    bool operator>=(const T& value) const
-    {
-        return not (*this < value);
     }
 
     template<
@@ -332,7 +305,7 @@ struct numeric_limits<ax::fixed_decimal<E>> : numeric_limits<long long>
     {
         return type::from_llong(numeric_limits<long long>::min());
     }
-    
+
     static constexpr
     type max()
     {
