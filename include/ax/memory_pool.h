@@ -36,7 +36,6 @@ public:
         }
     }
 
-
     static inline
     void* alloc(std::size_t sz)
     {
@@ -56,14 +55,12 @@ public:
         for (unsigned i = 1; i < chunk_sz; ++i) {
             self.storage_.add(&objs[i]);
         }
-        std::cout << "Chunk size: " << chunk_sz << std::endl;
         return reinterpret_cast<void*>(&objs[0]);
     }
 
     static inline
     void destroy(void* ptr)
     {
-        std::cout << "Destroying: " << ptr << std::endl;
         instance().storage_.add(reinterpret_cast<pooled_type*>(ptr));
     }
 
@@ -95,9 +92,10 @@ public:
     {
         if (n == 0)
             return;
-        auto* x = new T;
+        using alloc_type = std::aligned_storage_t<sizeof(T), alignof(T)>;
+        void* x = pool_type::alloc(sizeof(alloc_type));
         fill_pool(n - 1);
-        delete x;
+        pool_type::destroy(x);
     }
     static inline
     void* operator new(std::size_t sz)
