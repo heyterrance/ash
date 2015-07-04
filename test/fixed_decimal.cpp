@@ -3,7 +3,7 @@
 
 #include <Catch/catch.hpp>
 
-#include <ax/decimal.h>
+#include <ax/fixed_decimal.h>
 #include <ax/c_utils.h>
 
 using D3 = ax::fixed_decimal<3>;
