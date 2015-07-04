@@ -296,15 +296,15 @@ template<unsigned char E>
 inline
 std::ostream& operator<<(std::ostream& out, const fixed_decimal<E>& src)
 {
-    static const auto mul = src.multiplier();
-    const long long x = (src.as_llong() / mul) * mul;
-    const long long r = src.as_llong() - x;
-    const unsigned r_dig = num_digits(r);
-    if (src.as_llong() < 0)
-        out << '-';
-    out << (x / mul) << '.' << std::abs(r);
-    for (unsigned i = (r_dig + 1); i < src.exponent(); ++i)
-        out << '0';
+    long long val = src.as_llong();
+    long long divisor = src.multiplier();
+    for (unsigned dig = 0; dig != src.exponent() + 1; ++dig) {
+        out << (val / divisor);
+        if (dig == 0)
+            out << '.';
+        val = std::abs(val % divisor);
+        divisor /= 10;
+    }
     return out;
 }
 
