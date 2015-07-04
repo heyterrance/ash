@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#include <unordered_map>
+
 #include <Catch/catch.hpp>
 
 #include <ash/fixed_string.h>
@@ -65,4 +67,14 @@ SCENARIO("fixed string insertions", "[fixed_string]")
         S16 s("123");
         REQUIRE_FALSE(s.empty());
     }
+}
+
+TEST_CASE("hashable", "[fixed_string]")
+{
+    std::unordered_map<ash::fixed_string<4>, char> m;
+    m.emplace("ABC", 3);
+    CHECK(m["ABC"] == 3);
+    m.emplace("XYZ", 8);
+    CHECK_FALSE(m["ABC"] == 8);
+    CHECK(m["XYZ"] == 8);
 }

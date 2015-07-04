@@ -149,10 +149,12 @@ public:
     }
 
     template<std::size_t M>
+    constexpr
     bool operator==(const fixed_string<M, CharT>& rhs) const
     {
-        if (length() != rhs.length()) return false;
-        for (std::size_t i = 0; i != rhs.length(); ++i)
+        const size_type len = length();
+        if (len != rhs.length()) return false;
+        for (std::size_t i = 0; i != len; ++i)
             if (data_[i] != rhs[i]) return false;
         return true;
     }
@@ -177,4 +179,23 @@ std::ostream& operator<<(std::ostream& s, const fixed_string<C, T>& src)
 {
     return s << src.data_;
 }
+
 } // namespace ash
+
+namespace std {
+
+template<std::size_t C, typename CharT>
+struct hash<ash::fixed_string<C, CharT>>
+{
+    constexpr
+    std::size_t operator()(const ash::fixed_string<C, CharT>& src) const
+    {
+        std::size_t h = 0;
+        for (char c : src) {
+            (h <<= 1) ^= static_cast<unsigned char>(c);
+        }
+        return h;
+    }
+};
+
+} // namespace std
