@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#pragma once
+
 namespace ash {
 
 template<class Base>
