@@ -25,6 +25,8 @@
 #include "compare_base.h"
 #include "ash_math.h"
 
+namespace ash {
+
 namespace details {
 
 template<typename T, T Base, unsigned char E, unsigned char F>
@@ -36,8 +38,6 @@ static_assert(scaling_factor<int, 10, 5, 5>::value == 1, "Wrong scaling factor."
 static_assert(scaling_factor<int, 10, 4, 3>::value == 1, "Wrong scaling factor.");
 
 } // namespace details
-
-namespace ash {
 
 template<unsigned char E>
 class fixed_decimal : compareable<fixed_decimal<E>>
