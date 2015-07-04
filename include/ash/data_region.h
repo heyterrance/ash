@@ -21,7 +21,7 @@
 #include <cstdint>
 #include <memory>
 
-namespace ax {
+namespace ash {
 
 template<
     typename T, std::size_t kCapacity,
@@ -81,4 +81,4 @@ private:
     std::atomic_size_t size_{0};
 };
 
-} // namespace ax
+} // namespace ash

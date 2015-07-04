@@ -17,7 +17,7 @@
 
 #pragma once
 
-namespace ax {
+namespace ash {
 
 template<class Integer>
 constexpr

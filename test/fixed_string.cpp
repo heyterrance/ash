@@ -17,12 +17,12 @@
 
 #include <Catch/catch.hpp>
 
-#include <ax/fixed_string.h>
+#include <ash/fixed_string.h>
 
-using S4 = ax::fixed_string<4, char>;
-using S8 = ax::fixed_string<8, char>;
-using S16 = ax::fixed_string<16, char>;
-using S21 = ax::fixed_string<21, char>;
+using S4 = ash::fixed_string<4, char>;
+using S8 = ash::fixed_string<8, char>;
+using S16 = ash::fixed_string<16, char>;
+using S21 = ash::fixed_string<21, char>;
 
 TEST_CASE("fixed string constexpr", "[fixed_string]")
 {

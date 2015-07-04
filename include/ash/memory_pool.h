@@ -23,7 +23,7 @@
 
 #include "free_list.h"
 
-namespace ax {
+namespace ash {
 
 template<typename T> class memory_pooled;
 
@@ -41,7 +41,7 @@ private:
     memory_pool& operator=(const memory_pool&) = delete;
 
 public:
-    using storage_type = ax::free_list<pooled_type>;
+    using storage_type = ash::free_list<pooled_type>;
 
     ~memory_pool()
     {
@@ -95,7 +95,7 @@ private:
 } // namespace details
 
 template<typename T>
-class memory_pooled : public ax::free_list_node<memory_pooled<T>>
+class memory_pooled : public ash::free_list_node<memory_pooled<T>>
 {
 private:
     using pool_type = details::memory_pool<T>;
@@ -124,4 +124,4 @@ public:
     }
 };
 
-} // namespace ax
+} // namespace ash

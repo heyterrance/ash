@@ -32,7 +32,7 @@ struct neg_pow : pos_pow<T, T(1) / B, -E> { };
 
 } // namespace details
 
-namespace ax {
+namespace ash {
 
 template<typename T, T Base, signed char Exp>
 struct c_pow :
@@ -87,4 +87,4 @@ struct c_exp<T, 1>
     }
 };
 
-} // namespace ax
+} // namespace ash

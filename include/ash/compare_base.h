@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace ax {
+namespace ash {
 
 template<class Base>
 struct compareable
@@ -49,4 +49,4 @@ struct compareable
     }
 };
 
-} // namespace ax
+} // namespace ash

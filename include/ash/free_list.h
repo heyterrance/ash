@@ -21,13 +21,13 @@
 #include <cassert>
 #include <cstdint>
 
-namespace ax {
+namespace ash {
 
 template<typename T> class free_list;
 
 template<typename T>
 struct free_list_node {
-    std::atomic<T*> _ax_fl_next{nullptr};
+    std::atomic<T*> _ash_fl_next{nullptr};
 };
 
 template<typename T>
@@ -52,7 +52,7 @@ public:
         head_type next_head = { node, 0 };
         do {
             next_head.tag = head.tag + 1;
-            node->_ax_fl_next.store(head.value, std::memory_order_relaxed);
+            node->_ash_fl_next.store(head.value, std::memory_order_relaxed);
         } while (not swap_heads(head, next_head, std::memory_order_relaxed));
     }
 
@@ -62,7 +62,7 @@ public:
         auto head = head_.load(std::memory_order_acquire);
         head_type next_head;
         while (head.value != nullptr) {
-            next_head.value = head.value->_ax_fl_next.load(std::memory_order_relaxed);
+            next_head.value = head.value->_ash_fl_next.load(std::memory_order_relaxed);
             next_head.tag = head.tag + 1;
             if (swap_heads(head, next_head, std::memory_order_acquire))
                 break;
@@ -83,4 +83,4 @@ private:
     std::atomic<head_type> head_;
 };
 
-} // namespace ax
+} // namespace ash

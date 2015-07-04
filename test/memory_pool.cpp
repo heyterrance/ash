@@ -19,9 +19,9 @@
 
 #include <Catch/catch.hpp>
 
-#include <ax/memory_pool.h>
+#include <ash/memory_pool.h>
 
-struct pooled : ax::memory_pooled<pooled>
+struct pooled : ash::memory_pooled<pooled>
 {
     char data_[12];
 };

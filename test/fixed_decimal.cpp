@@ -20,12 +20,12 @@
 
 #include <Catch/catch.hpp>
 
-#include <ax/fixed_decimal.h>
-#include <ax/c_utils.h>
+#include <ash/fixed_decimal.h>
+#include <ash/c_utils.h>
 
-using D3 = ax::fixed_decimal<3>;
-using D6 = ax::fixed_decimal<6>;
-using D8 = ax::fixed_decimal<8>;
+using D3 = ash::fixed_decimal<3>;
+using D6 = ash::fixed_decimal<6>;
+using D8 = ash::fixed_decimal<8>;
 
 TEST_CASE("construction", "[fixed_decimal]")
 {
@@ -63,9 +63,9 @@ TEST_CASE("operations", "[fixed_decimal]")
         CHECK(4 / D8(2) == D6(2));
         CHECK(D8(1) / (D8(1) / D8(1)) == D8(1));
     }
-    SECTION("ax::c_exp") {
-        ax::c_exp<D8, -2> neg2_exp;
-        ax::c_exp<D8, +2> pos2_exp;
+    SECTION("ash::c_exp") {
+        ash::c_exp<D8, -2> neg2_exp;
+        ash::c_exp<D8, +2> pos2_exp;
         CHECK(pos2_exp(D8(1)) == D8(1));
         CHECK(neg2_exp(D8(1)) == D8(1));
         CHECK(neg2_exp(D8(10)) == D8(1, 100));

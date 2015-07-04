@@ -23,12 +23,12 @@
 
 #include "c_utils.h"
 #include "compare_base.h"
-#include "ax_math.h"
+#include "ash_math.h"
 
 namespace details {
 
 template<typename T, T Base, unsigned char E, unsigned char F>
-using scaling_factor = ax::c_pow<T, Base, F - std::min(F, E)>;
+using scaling_factor = ash::c_pow<T, Base, F - std::min(F, E)>;
 
 static_assert(scaling_factor<int, 10, 3, 4>::value == 10, "Wrong scaling factor.");
 static_assert(scaling_factor<int, 10, 2, 5>::value == 1000, "Wrong scaling factor.");
@@ -37,7 +37,7 @@ static_assert(scaling_factor<int, 10, 4, 3>::value == 1, "Wrong scaling factor."
 
 } // namespace details
 
-namespace ax {
+namespace ash {
 
 template<unsigned char E>
 class fixed_decimal : compareable<fixed_decimal<E>>
@@ -322,14 +322,14 @@ std::ostream& operator<<(std::ostream& out, const fixed_decimal<E>& src)
     return out;
 }
 
-} // namespace ax
+} // namespace ash
 
 namespace std {
 
 template<unsigned char E>
-struct numeric_limits<ax::fixed_decimal<E>> : numeric_limits<long long>
+struct numeric_limits<ash::fixed_decimal<E>> : numeric_limits<long long>
 {
-    using type = ax::fixed_decimal<E>;
+    using type = ash::fixed_decimal<E>;
 
     static const constexpr bool is_integer = false;
     static const constexpr bool is_specialized = true;

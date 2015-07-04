@@ -25,7 +25,7 @@
 
 #include "compare_base.h"
 
-namespace ax {
+namespace ash {
 
 template<std::size_t Capacity, typename CharT = char>
 class fixed_string : compareable<fixed_string<Capacity, CharT>>
@@ -177,4 +177,4 @@ std::ostream& operator<<(std::ostream& s, const fixed_string<C, T>& src)
 {
     return s << src.data_;
 }
-} // namespace ax
+} // namespace ash
