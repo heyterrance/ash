@@ -1,5 +1,4 @@
-# Ax
-An assortment of helpful classes
+# A Set of Headers
 
 ## Classes
 * ```fixed_decimal<unsigned Precision>```
