@@ -29,6 +29,23 @@ template<typename T> class memory_pooled;
 
 namespace details {
 
+class del_node : public free_list_node<del_node>
+{
+public:
+    del_node(void* m) :
+        mem(m)
+    { }
+
+    ~del_node()
+    {
+        ::operator delete(mem);
+    }
+
+private:
+    void* const mem;
+};
+
+
 template<typename T>
 class memory_pool
 {
@@ -41,12 +58,13 @@ private:
     memory_pool& operator=(const memory_pool&) = delete;
 
 public:
-    using storage_type = ash::free_list<pooled_type>;
+    using storage_list = ash::free_list<pooled_type>;
+    using trash_list = ash::free_list<del_node>;
 
     ~memory_pool()
     {
         while (auto* obj = to_trash_.try_get()) {
-            ::operator delete[](obj);
+            delete obj;
         }
     }
 
@@ -66,6 +84,7 @@ public:
             self.chunk_size_.fetch_add((self.chunk_size_ + 1) / 2);
         void* chunk = ::operator new(sz * chunk_sz);
         auto* objs = reinterpret_cast<pooled_type*>(chunk);
+        self.to_trash_.add(new del_node(chunk));
         for (unsigned i = 1; i < chunk_sz; ++i) {
             self.storage_.add(&objs[i]);
         }
@@ -87,9 +106,9 @@ private:
     }
 
 private:
-    storage_type storage_;
-    std::atomic_size_t chunk_size_{1};
-    storage_type to_trash_;
+    storage_list storage_;
+    std::atomic_size_t chunk_size_{2};
+    trash_list to_trash_;
 };
 
 } // namespace details
