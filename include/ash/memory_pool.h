@@ -83,12 +83,13 @@ public:
         const std::size_t chunk_sz =
             self.chunk_size_.fetch_add((self.chunk_size_ + 1) / 2);
         void* chunk = ::operator new(sz * chunk_sz);
-        auto* objs = reinterpret_cast<pooled_type*>(chunk);
         self.to_trash_.add(new del_node(chunk));
+        char* const cchunk = reinterpret_cast<char*>(chunk);
         for (unsigned i = 1; i < chunk_sz; ++i) {
-            self.storage_.add(&objs[i]);
+            auto* obj = reinterpret_cast<pooled_type*>(cchunk + (i * sz));
+            self.storage_.add(obj);
         }
-        return reinterpret_cast<void*>(&objs[0]);
+        return chunk;
     }
 
     static inline
@@ -130,6 +131,7 @@ public:
         fill_pool(n - 1);
         pool_type::destroy(x);
     }
+
     static inline
     void* operator new(std::size_t sz)
     {
