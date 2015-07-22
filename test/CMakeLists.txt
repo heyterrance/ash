@@ -6,4 +6,5 @@ add_executable(
     fixed_decimal.cpp
     fixed_string.cpp
     memory_pool.cpp
+    sstorage.cpp
 )
