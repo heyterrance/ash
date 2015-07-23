@@ -18,26 +18,27 @@
 #pragma once
 
 #include <array>
-#include <atomic>
 #include <cstdint>
+#include <forward_list>
 #include <string>
 #include <type_traits>
 #include <utility>
 
 namespace ash {
 
-template<
-    typename T, std::size_t Capacity,
-    typename SizeT = std::size_t>
-class stable_storage
+template<typename T, std::size_t Capacity>
+class stable_chunk
 {
+private:
+    static_assert(Capacity != 0, "Capacity must be positive");
+
 public:
     using size_type = std::size_t;
     using reference = T&;
     using buffer_type = typename std::aligned_storage_t<sizeof(T), alignof(T)>;
 
 public:
-    ~stable_storage()
+    ~stable_chunk()
     {
         for (size_type i = 0; i != index_; ++i) {
             reinterpret_cast<T*>(&storage_[i])->~T();
@@ -69,6 +70,11 @@ public:
         return index_;
     }
 
+    bool full() const
+    {
+        return index_ == Capacity;
+    }
+
     static constexpr
     size_type capacity()
     {
@@ -76,14 +82,51 @@ public:
     }
 
 private:
-    SizeT index_{0};
+    size_type index_{0};
     std::array<buffer_type, Capacity> storage_;
 };
 
-template<typename T, std::size_t Capacity>
-using sstorage = stable_storage<T, Capacity, std::size_t>;
+template<typename T, std::size_t ChunkCapacity>
+class stable_storage
+{
+public:
+    using chunk_type = stable_chunk<T, ChunkCapacity>;
+    using reference = typename chunk_type::reference;
+    using size_type = typename chunk_type::size_type;
 
-template<typename T, std::size_t Capacity>
-using atomic_sstorage = stable_storage<T, Capacity, std::atomic_size_t>;
+public:
+    template<typename... Args>
+    reference create(Args&&... args)
+    {
+        auto& chunk = grab_chunk();
+        return chunk.create(std::forward<Args>(args)...);
+    }
+
+    size_type chunk_count() const
+    {
+        return num_chunks_;
+    }
+
+    static constexpr
+    size_type chunk_capacity()
+    {
+        return chunk_type::capacity();
+    }
+
+private:
+    chunk_type& grab_chunk()
+    {
+        auto& chunk = chunks_.front();
+        if (not chunk.full())
+            return chunk;
+        ++num_chunks_;
+        chunks_.emplace_front();
+        return grab_chunk();
+    }
+
+private:
+    std::forward_list<chunk_type> chunks_{1};
+    size_type num_chunks_{1};
+};
 
 } // namespace ash

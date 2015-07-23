@@ -22,9 +22,9 @@
 
 #include <ash/sstorage.h>
 
-TEST_CASE("static storage create", "[static_storage]")
+TEST_CASE("stable chunk create", "[static_storage]")
 {
-    ash::stable_storage<unsigned, 8> store;
+    ash::stable_chunk<unsigned, 8> store;
     std::vector<std::reference_wrapper<unsigned>> refs;
     refs.emplace_back(store.create(15));
     CHECK(refs[0] == 15);
@@ -34,4 +34,20 @@ TEST_CASE("static storage create", "[static_storage]")
     CHECK(refs[0] == 15);
     CHECK_NOTHROW(store.try_create());
     CHECK_THROWS(store.try_create());
+}
+
+TEST_CASE("stable storage create", "[static_storage]")
+{
+    ash::stable_storage<char, 4> store;
+    auto& a = store.create('A');
+    auto& b = store.create('B');
+    auto& c = store.create('C');
+    auto& d = store.create('D');
+    CHECK(store.chunk_count() == 1);
+    CHECK(&a + 1 == &b);
+    CHECK(&c + 1 == &d);
+
+    auto& e = store.create('E');
+    CHECK(store.chunk_count() == 2);
+    CHECK_FALSE(&d + 1 == &e);
 }
