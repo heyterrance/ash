@@ -96,8 +96,12 @@ public:
     }
 
     static inline constexpr
-    self_type from_llong(long long v)
+    self_type from_llong(long long v, unsigned char vex = Exponent)
     {
+        if (vex < Exponent)
+            return from_llong(v * 10, vex + 1);
+        else if (vex > Exponent)
+            return from_llong(v / 10, vex - 1);
         self_type r;
         r.value_ = v;
         return r;
