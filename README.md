@@ -38,5 +38,35 @@ assert(a == b);
 Abc::fill_pool(800); // Add 800 Abcs to the pool.
 ```
 
+### `ash::stable_storage<typename T, std::size_t ChunkSize>` and `ash::stable_chunk<typename T, std::size_t Capacity>`
+
+Create objects with an unchanging position in memory.
+`stable_chunk` is a region of uninitialized storage.
+`stable_storage` uses `stable_chunk` to implement lists of uninitialized storage.
+
+```
+#include <ash/sstorage.h>
+
+ash::stable_chunk<int, 2> schunk;
+
+// There's no way to retrieve objects created by create() or
+// try_create() except through the returned reference.
+auto& x = schunk.create(8);
+schunk.create(); // Lost reference.
+try {
+    schunk.try_create(2);
+} catch (const std::out_of_range& oor) {
+    std::cerr << "No more space in chunk." std::endl;
+}
+
+// stable_storage has no try_create() call. Another chunk will
+// be created once the current one if full.
+ash::stable_storage<int, 2> sstore;
+while (sstore.chunk_count() != 3) {
+    sstore.create();
+}
+```
+
+
 ## Authors
 Terrance Howard <heyterrance@gmail.com>
