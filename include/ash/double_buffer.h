@@ -20,7 +20,10 @@
 #pragma once
 
 #include <atomic>
+#include <cassert>
 #include <cstdint>
+#include <memory>
+#include <utility>
 
 namespace ash {
 
@@ -34,8 +37,8 @@ public:
     using self_type = double_buffer_rd_guard<T>;
 
 public:
-    double_buffer_rd_guard(parent_type& p) :
-        data_{p.start_reading()},
+    explicit double_buffer_rd_guard(parent_type& p) :
+        data_{p.begin_read()},
         parent_{std::addressof(p)}
     { }
 
@@ -51,7 +54,7 @@ public:
     ~double_buffer_rd_guard()
     {
         if (parent_)
-            parent_->end_reading();
+            parent_->end_read();
     }
 
     explicit operator bool() const
@@ -66,6 +69,7 @@ public:
 
     const T& get() const
     {
+        assert(data_ != nullptr);
         return *data_;
     }
 
@@ -82,20 +86,35 @@ public:
     friend read_guard;
 
 public:
+    double_buffer() = default;
+
+    explicit double_buffer(const T& value) :
+        buffers_{value, value}
+    { }
+
+    double_buffer(const T& value1, const T& value2) :
+        buffers_{value1, value2}
+    { }
+
     void write(const T& src)
     {
-        auto* dest = start_writing();
-        *dest = src;
-        end_writing();
+        (*begin_write()) = src;
+        end_write();
+    }
+
+    void write(T&& src)
+    {
+        (*begin_write()) = std::move(src);
+        end_write();
     }
 
     bool try_read(T& dest)
     {
-        auto* const src = start_reading();
+        const auto* src = begin_read();
         if (src) {
             dest = (*src);
         }
-        end_reading();
+        end_read();
         return src != nullptr;
     }
 
@@ -105,7 +124,7 @@ public:
     }
 
 protected:
-    T* start_writing()
+    T* begin_write() noexcept
     {
         // Increment active users; once we do this, no one can swap the active
         // cell on us until we're done
@@ -113,7 +132,7 @@ protected:
         return std::addressof(buffers_[state & 1]);
     }
 
-    void end_writing()
+    void end_write() noexcept
     {
         // We want to swap the active cell, but only if we were the last ones
         // concurrently accessing the data (otherwise the consumer will do it
@@ -136,7 +155,7 @@ protected:
         }
     }
 
-    const T* start_reading()
+    const T* begin_read() noexcept
     {
         read_state_ = state_.load(std::memory_order_relaxed);
         if ((read_state_ & (0x10 >> (read_state_ & 1))) == 0) {
@@ -158,13 +177,13 @@ protected:
         return std::addressof(buffers_[(read_state_ & 1) ^ 1]);
     }
 
-    void end_reading()
+    void end_read() noexcept
     {
         if ((read_state_ & (0x10 >> (read_state_ & 1))) == 0) {
             // There was nothing to read; shame to repeat this check, but if
             // these functions are inlined it might not matter. Otherwise the
             // API could be changed.  Or just don't call this method if
-            // start_reading() returns nullptr -- then you could also get rid
+            // begin_read() returns nullptr -- then you could also get rid
             // of read_state_.
             return;
         }
@@ -185,7 +204,8 @@ protected:
             // would mean they swapped an even number of times).  Note that we
             // don't bother swapping if there's nothing to read in the other
             // cell.
-            state_.compare_exchange_strong(state, state ^ 0x1, std::memory_order_relaxed);
+            state_.compare_exchange_strong(
+                    state, state ^ 0x1, std::memory_order_relaxed);
         }
     }
 
