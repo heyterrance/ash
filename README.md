@@ -67,6 +67,28 @@ while (sstore.chunk_count() != 3) {
 }
 ```
 
+### `ash::double_buffer<typename T>`
+A thread-safe, single producer single consumer double buffer. Data may always
+be written to the buffer. Only the latest data may be read.
+
+```
+#include <ash/double_buffer.h>
+
+ash::double_buffer<std::string> buf;
+buf.write("Hello, World");
+{
+    // Locks reading on the buffer, releases on destruction.
+    auto rg = buf.make_read_guard();
+    // The following writes don't overrite what's contained in the read_guard.
+    buf.write("Hello, Seattle");
+    buf.write("G'day, Sydney.");
+    assert(rg.get() == "Hello, World.");
+}
+std::string dest;
+bool new_data = buf.try_read(dest);
+assert(new_data);
+assert(dest == "G'day, Sydney");
+```
 
 ## Authors
 Terrance Howard <heyterrance@gmail.com>
