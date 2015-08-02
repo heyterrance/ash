@@ -96,6 +96,11 @@ public:
         buffers_{value1, value2}
     { }
 
+    bool is_lock_free() const
+    {
+        return state_.is_lock_free();
+    }
+
     void write(const T& src)
     {
         (*begin_write()) = src;
