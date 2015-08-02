@@ -96,6 +96,14 @@ public:
         buffers_{value1, value2}
     { }
 
+    double_buffer(const double_buffer& src) :
+        buffers_{src.buffers_}
+    { }
+
+    double_buffer(double_buffer&& src) :
+        buffers_{src.buffers_}
+    { }
+
     bool is_lock_free() const
     {
         return state_.is_lock_free();
