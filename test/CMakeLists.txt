@@ -3,6 +3,7 @@ include_directories(${AX_INCLUDE_PATH})
 add_executable(
     ash_test
     main.cpp
+    double_buffer.cpp
     fixed_decimal.cpp
     fixed_string.cpp
     memory_pool.cpp
