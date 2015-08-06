@@ -40,32 +40,60 @@ SCENARIO("fixed string insertions", "[fixed_string]")
     GIVEN("an empty fixed_string") {
         S16 s;
         REQUIRE(s.empty());
-
-        WHEN("a small string is appended") {
-            s.append("a");
-            THEN("the string is added") {
-                CHECK(s.length() == 1);
-            }
-        }
-        WHEN("two small strings are appened") {
-            s.append("a").append("b");
-            THEN("the strings are in the correct order") {
-                CHECK(s.length() == 2);
-                CHECK(s.str() == "ab");
-            }
-        }
-        WHEN("another fixed string is appened") {
-            s.append("a").append(S8("bcd"));
-            THEN("all the contents are appened") {
-                CHECK(s.length() == 4);
-                CHECK(s.str() == "abcd");
-            }
-        }
     }
-
     GIVEN("a non-empty string") {
         S16 s("123");
         REQUIRE_FALSE(s.empty());
+    }
+}
+
+TEST_CASE("==", "[fixed_string, comparison]")
+{
+    ash::fixed_string<8> s{"Hello"};
+    SECTION("overloads") {
+        CHECK(s == "Hello");
+        CHECK(s == "Hello\0\0\0");
+        CHECK_FALSE(s == "Hi");
+        CHECK_FALSE(s == "HelloO");
+        CHECK(s == std::string{"Hello"});
+        CHECK_FALSE(s == std::string{"Hi"});
+        CHECK(s == (const char*) "Hello");
+        CHECK_FALSE(s == (const char*) "HelloHelloHello");
+    }
+    SECTION("full buffer") {
+        s = ash::fixed_string<8>{8, 'a'};
+        CHECK(s == std::string(8, 'a'));
+    }
+}
+
+TEST_CASE("append", "[fixed_string]")
+{
+    ash::fixed_string<8> s;
+    SECTION("mutliple char") {
+        s.append(1, 'a');
+        CHECK(s.length() == 1);
+        CHECK(s == "a");
+        s.append(2, 'b');
+        CHECK(s.length() == 3);
+        CHECK(s == "abb");
+    }
+    SECTION("another fixed_string") {
+        s.append("AB");
+        CHECK(s == "AB");
+        s.append("CD").append("EF");
+        CHECK(s == "ABCDEF");
+    }
+    SECTION("overflow") {
+        s.append(7, 'a');
+        CHECK(s == std::string(7, 'a'));
+        s.append(4, 'a');
+        CHECK_FALSE(s == std::string(11, 'a'));
+        CHECK(s == std::string(8, 'a'));
+    }
+    SECTION("operator+=") {
+        s += 'a';
+        s += 'b';
+        CHECK(s == "ab");
     }
 }
 

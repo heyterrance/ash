@@ -39,11 +39,23 @@ public:
 public:
     fixed_string() = default;
 
+    template<typename Allocator>
+    constexpr fixed_string(const std::basic_string<CharT, Allocator>& src) :
+        fixed_string(src.c_str())
+    { }
+
     constexpr fixed_string(const char* s)
     {
         size_type idx = 0;
         while (idx != Capacity and *s != '\0') {
             data_[idx++] = *(s++);
+        }
+    }
+
+    constexpr fixed_string(size_type count, CharT ch)
+    {
+        for (size_type i = 0; i != std::min(count, Capacity); ++i) {
+            data_[i] = ch;
         }
     }
 
@@ -137,6 +149,22 @@ public:
         return *this;
     }
 
+    template<typename... Args>
+    fixed_string& operator+=(Args&&... args)
+    {
+        return append(std::forward<Args>(args)...);
+    }
+
+    fixed_string& append(CharT ch)
+    {
+        return insert(length(), 1, ch);
+    }
+
+    fixed_string& append(size_type count, CharT ch)
+    {
+        return insert(length(), count, ch);
+    }
+
     template<std::size_t Cap>
     fixed_string& append(const fixed_string<Cap, CharT>& s)
     {
@@ -159,6 +187,64 @@ public:
         return true;
     }
 
+    constexpr
+    bool operator==(const CharT (&rhs)[Capacity]) const
+    {
+        for (size_type i = 0; i != Capacity; ++i) {
+            if (rhs[i] == '\0' and data_[i] == '\0')
+                return true;
+            if (rhs[i] != data_[i])
+                return false;
+        }
+        return false;
+    }
+
+    template<typename Allocator>
+    constexpr
+    bool operator==(const std::basic_string<CharT, Allocator>& rhs) const
+    {
+        const size_type llen = length();
+        if (llen != rhs.length()) return false;
+        for (size_type i = 0; i != llen; ++i)
+            if (data_[i] != rhs[i]) return false;
+        return true;
+    }
+
+    template<size_type M, typename std::enable_if_t<(M < Capacity), int> = 0>
+    constexpr
+    bool operator==(const CharT (&rhs)[M]) const
+    {
+        size_type idx = 0;
+        for (size_type i = 0; i != M; ++i) {
+            if (rhs[i] == '\0' and data_[i] == '\0')
+                return true;
+            if (rhs[i] != data_[i])
+                return false;
+        }
+        return data_[M] == '\0';
+    }
+
+    template<size_type M, typename std::enable_if_t<(M > Capacity), int> = 0>
+    constexpr
+    bool operator==(const CharT (&rhs)[M]) const
+    {
+        size_type idx = 0;
+        for (size_type i = 0; i != Capacity; ++i) {
+            if (rhs[i] == '\0' and data_[i] == '\0')
+                return true;
+            if (rhs[i] != data_[i])
+                return false;
+        }
+        return rhs[Capacity] == '\0';
+    }
+
+    constexpr
+    bool operator==(const CharT* rhs) const
+    {
+        const int res = std::strncmp(rhs, data_, Capacity);
+        return (res == 0);
+    }
+
     template<std::size_t M>
     constexpr
     bool operator<(const fixed_string<M, CharT>& rhs) const
@@ -167,17 +253,14 @@ public:
                 begin(), end(), rhs.begin(), rhs.end());
     }
 
-    friend std::ostream& operator<<(std::ostream&, const fixed_string&);
-
 private:
     CharT data_[Capacity] = { 0 };
 };
 
 template<std::size_t C, typename T>
-inline
 std::ostream& operator<<(std::ostream& s, const fixed_string<C, T>& src)
 {
-    return s << src.data_;
+    return s << src.c_str();
 }
 
 } // namespace ash
