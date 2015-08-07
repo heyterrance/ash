@@ -30,34 +30,87 @@ namespace ash {
 template<typename T> class double_buffer;
 
 template<typename T>
+class double_buffer_wr_guard
+{
+public:
+    using parent_type = double_buffer<T>;
+    friend parent_type;
+
+protected:
+    double_buffer_wr_guard(parent_type& p) :
+        data_{p.begin_write()},
+        parent_{p}
+    { }
+
+    ~double_buffer_wr_guard()
+    {
+        parent_.end_write();
+    }
+
+    T& get() const { return data_; }
+
+private:
+    T& data_;
+    parent_type& parent_;
+};
+
+template<typename T>
 class double_buffer_rd_guard
 {
 public:
     using parent_type = double_buffer<T>;
-    using self_type = double_buffer_rd_guard<T>;
+    friend parent_type;
+
+protected:
+    explicit double_buffer_rd_guard(parent_type& p) :
+        data_{p.begin_read()},
+        parent_{p}
+    { }
+
+    ~double_buffer_rd_guard()
+    {
+        parent_.end_read();
+    }
+
+
+    const T* get() const { return data_; }
+
+private:
+    const T* const data_;
+    parent_type& parent_;
+};
+
+template<typename T>
+class double_buffer_rd_lock
+{
+public:
+    using parent_type = double_buffer<T>;
+    using self_type = double_buffer_rd_lock<T>;
 
 public:
-    explicit double_buffer_rd_guard(parent_type& p) :
+    explicit double_buffer_rd_lock(parent_type& p) :
         data_{p.begin_read()},
         parent_{std::addressof(p)}
     { }
 
-    double_buffer_rd_guard(self_type&& src) :
+    double_buffer_rd_lock(self_type&& src) :
         data_{src.data_},
         parent_{src.parent_}
     {
+        src.data_ = nullptr;
         src.parent_ = nullptr;
     }
 
-    double_buffer_rd_guard(const self_type&) = delete;
+    double_buffer_rd_lock(const self_type&) = delete;
+    self_type& operator=(const self_type&) = delete;
 
-    ~double_buffer_rd_guard()
+    ~double_buffer_rd_lock()
     {
         if (parent_)
             parent_->end_read();
     }
 
-    explicit operator bool() const
+    explicit operator bool() const noexcept
     {
         return data_ != nullptr and parent_ != nullptr;
     }
@@ -74,7 +127,7 @@ public:
     }
 
 private:
-    const T* const data_;
+    const T* data_;
     double_buffer<T>* parent_;
 };
 
@@ -82,7 +135,14 @@ template<typename T>
 class double_buffer
 {
 public:
-    using read_guard = double_buffer_rd_guard<T>;
+    using read_lock = double_buffer_rd_lock<T>;
+    friend read_lock;
+
+protected:
+    using read_guard    = double_buffer_rd_guard<T>;
+    using write_guard   = double_buffer_wr_guard<T>;
+
+    friend write_guard;
     friend read_guard;
 
 public:
@@ -111,38 +171,42 @@ public:
 
     void write(const T& src)
     {
-        (*begin_write()) = src;
-        end_write();
+        write_guard{*this}.get() = src;
     }
 
     void write(T&& src)
     {
-        (*begin_write()) = std::move(src);
-        end_write();
+        write_guard{*this}.get() = std::move(src);
+    }
+
+    template<typename... Args>
+    void emplace(Args&&... args)
+    {
+        write_guard{*this}.get() = T(std::forward<Args>(args)...);
     }
 
     bool try_read(T& dest)
     {
-        const auto* src = begin_read();
+        const read_guard rg{*this};
+        const auto* src = rg.get();
         if (src) {
             dest = (*src);
         }
-        end_read();
         return src != nullptr;
     }
 
-    read_guard make_read_guard()
+    read_lock make_read_lock() noexcept
     {
-        return read_guard(*this);
+        return read_lock{*this};
     }
 
 protected:
-    T* begin_write() noexcept
+    T& begin_write() noexcept
     {
         // Increment active users; once we do this, no one can swap the active
         // cell on us until we're done
         auto state = state_.fetch_add(0x2, std::memory_order_relaxed);
-        return std::addressof(buffers_[state & 1]);
+        return buffers_[state & 1];
     }
 
     void end_write() noexcept

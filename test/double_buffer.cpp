@@ -21,27 +21,27 @@
 
 #include <ash/double_buffer.h>
 
-TEST_CASE("read guard", "[double_buffer]")
+TEST_CASE("read lock", "[double_buffer]")
 {
     using buffer_type = ash::double_buffer<std::string>;
     buffer_type buf;
     buf.write("hello");
     {
-        buffer_type::read_guard rg(buf);
-        REQUIRE(rg);
-        CHECK(rg.get() == "hello");
+        buffer_type::read_lock rll(buf);
+        REQUIRE(rll);
+        CHECK(rll.get() == "hello");
     }
     buf.write("world");
-    buf.write("other");
+    buf.emplace("other");
     std::string dest;
     REQUIRE(buf.try_read(dest));
     CHECK(dest == "other"); // Only get latest data.
     CHECK_FALSE(buf.try_read(dest));
 
-    buf.write("hello again");
-    auto rg = buf.make_read_guard();
-    REQUIRE(rg);
-    buf.write("what does rg have?");
-    buf.write("what does rg have now?");
-    CHECK(rg.get() == "hello again");
+    buf.emplace(3, 'a');
+    auto rl = buf.make_read_lock();
+    REQUIRE(rl);
+    buf.emplace(3, 'b');
+    buf.emplace(3, 'c');
+    CHECK(rl.get() == "aaa");
 }

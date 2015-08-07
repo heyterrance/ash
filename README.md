@@ -78,8 +78,8 @@ ash::double_buffer<std::string> buf;
 buf.write("Hello, World");
 {
     // Locks reading on the buffer, releases on destruction.
-    auto rg = buf.make_read_guard();
-    // The following writes don't overrite what's contained in the read_guard.
+    auto rg = buf.make_read_lock();
+    // The following writes don't overrite what's contained in the read_lock.
     buf.write("Hello, Seattle");
     buf.write("G'day, Sydney.");
     assert(rg.get() == "Hello, World.");
