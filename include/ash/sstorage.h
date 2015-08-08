@@ -33,9 +33,10 @@ private:
     static_assert(Capacity != 0, "Capacity must be positive");
 
 public:
-    using size_type = std::size_t;
-    using reference = T&;
     using buffer_type = typename std::aligned_storage_t<sizeof(T), alignof(T)>;
+    using storage_type = std::array<buffer_type, Capacity>;
+    using reference = T&;
+    using size_type = typename storage_type::size_type;
 
 public:
     ~stable_chunk()
@@ -46,14 +47,14 @@ public:
     }
 
     template<typename... Args>
-    reference create(Args&&... args)
+    reference create(Args&&... args) noexcept
     {
         auto* obj = new (&storage_[index_++]) T(std::forward<Args>(args)...);
         return *obj;
     }
 
     template<typename... Args>
-    reference try_create(Args&&... args)
+    reference try_create(Args&&... args) throw(std::out_of_range)
     {
         const auto idx = index_++;
         if (idx >= Capacity) {
@@ -65,12 +66,12 @@ public:
         return *obj;
     }
 
-    size_type size() const
+    size_type size() const noexcept
     {
         return index_;
     }
 
-    bool full() const
+    bool full() const noexcept
     {
         return index_ == Capacity;
     }
@@ -83,7 +84,7 @@ public:
 
 private:
     size_type index_{0};
-    std::array<buffer_type, Capacity> storage_;
+    storage_type storage_;
 };
 
 template<typename T, std::size_t ChunkCapacity>
@@ -96,13 +97,13 @@ public:
 
 public:
     template<typename... Args>
-    reference create(Args&&... args)
+    reference create(Args&&... args) noexcept
     {
         auto& chunk = grab_chunk();
         return chunk.create(std::forward<Args>(args)...);
     }
 
-    size_type chunk_count() const
+    size_type chunk_count() const noexcept
     {
         return num_chunks_;
     }
@@ -114,13 +115,13 @@ public:
     }
 
 private:
-    chunk_type& grab_chunk()
+    chunk_type& grab_chunk() noexcept
     {
         auto& chunk = chunks_.front();
         if (not chunk.full())
             return chunk;
-        ++num_chunks_;
         chunks_.emplace_front();
+        ++num_chunks_;
         return grab_chunk();
     }
 
