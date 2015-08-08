@@ -58,7 +58,7 @@ public:
     {
         const auto idx = index_++;
         if (idx >= Capacity) {
-            index_ = idx;
+            index_ = Capacity;
             static const std::string errstr = "Cannot emplace to index=";
             throw std::out_of_range(errstr + std::to_string(idx));
         }
