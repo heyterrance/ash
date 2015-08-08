@@ -127,8 +127,8 @@ public:
     }
 
 private:
-    const T* data_;
-    double_buffer<T>* parent_;
+    const T* data_{nullptr};
+    double_buffer<T>* parent_{nullptr};
 };
 
 template<typename T>
