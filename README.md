@@ -90,5 +90,17 @@ assert(new_data);
 assert(dest == "G'day, Sydney");
 ```
 
+### `ash::function_ptr<typename R, typename... Args>`
+Function pointer wrapper with similar interface to `std::function`.
+
+```
+#include <ash/function_ptr.h>
+
+auto mul2 = [](int x){ return x * 2; };
+ash::function_ptr<int(int)> f{mul2};
+
+assert(f(5) == mul2(5));
+```
+
 ## Authors
 Terrance Howard <heyterrance@gmail.com>
