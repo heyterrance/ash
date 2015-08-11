@@ -9,8 +9,11 @@ A real number precise to `Prec` decimal places.
 ```
 #include <ash/fixed_decimal.h>
 
-auto n = ash::fixed_decimal<4>::from_string("1.23456");
-std::cout << n << std::cout; // Prints "1.2345"
+ash::fixed_decimal<3> n{50.7};
+std::cout << (3 * n) << std::cout; // Prints "152.1"
+
+auto e = ash::fixed_decimal<9>::from_string("2.718281828");
+std::cout << e << std::cout; // Prints "2.718281828"
 ```
 
 ### `ash::fixed_string<std::size_t Capacity>`
