@@ -46,14 +46,13 @@ public:
         src.ptr_ = nullptr;
     }
 
-    template<typename Func>
-    function_ptr& operator=(Func&& f)
+    function_ptr& operator=(pointer f)
     {
         ptr_ = f;
         return *this;
     }
 
-    function_ptr& operator=(const function_ptr&) = default;
+    function_ptr& operator=(const function_ptr& src) = default;
 
     function_ptr& operator=(function_ptr&& src)
     {
