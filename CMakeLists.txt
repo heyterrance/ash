@@ -42,5 +42,6 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin)
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 set(AX_INCLUDE_PATH ${CMAKE_SOURCE_DIR}/include)
+set(EXT_INCLUDE_PATH ${CMAKE_SOURCE_DIR}/ext)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/test)
