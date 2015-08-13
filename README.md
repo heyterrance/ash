@@ -22,8 +22,8 @@ A char array of size `Capacity` partially matching the `std::string` interface. 
 ```
 #include <ash/fixed_string>
 
-ash::fixed_string<20> hi("Hello, ");
-hi.append("World");
+ash::fixed_string<20> hi{"Hello, "};
+hi.append("World").append('!');
 ```
 
 ### `ash::memory_pooled<typename T>`

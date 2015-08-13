@@ -69,6 +69,11 @@ TEST_CASE("==", "[fixed_string, comparison]")
 TEST_CASE("append", "[fixed_string]")
 {
     ash::fixed_string<8> s;
+    SECTION("sing char") {
+        s.append('a');
+        CHECK(s.length() == 1);
+        CHECK(s == "a");
+    }
     SECTION("mutliple char") {
         s.append(1, 'a');
         CHECK(s.length() == 1);
