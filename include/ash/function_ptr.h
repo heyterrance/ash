@@ -28,6 +28,9 @@ template<typename Ret, typename... Args>
 class function_ptr<Ret(Args...)>
 {
 public:
+    using pointer = Ret (*)(Args...);
+
+public:
     function_ptr() = default;
 
     template<typename Func>
@@ -59,6 +62,10 @@ public:
         return *this;
     }
 
+    pointer get() const
+    {
+        return ptr_;
+    }
 
     explicit operator bool() const noexcept
     {
@@ -81,12 +88,26 @@ public:
     }
 
 private:
-    Ret (*ptr_)(Args...) = nullptr;
+    pointer ptr_ = nullptr;
 };
 
 } // namespace ash
 
 namespace std {
+
+template<typename R, typename... Args>
+struct hash<ash::function_ptr<R(Args...)>> :
+    private hash<typename ash::function_ptr<R(Args...)>::pointer>
+{
+    using argument_type = ash::function_ptr<R(Args...)>;
+    using base_type = hash<typename argument_type::pointer>;
+    using result_type = typename base_type::result_type;
+
+    result_type operator()(const argument_type& src) const
+    {
+        return static_cast<const base_type&>(*this)(src.get());
+    }
+};
 
 template<typename R, typename... Args>
 void swap(

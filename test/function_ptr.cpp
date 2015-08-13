@@ -100,3 +100,15 @@ TEST_CASE("throw", "[function_ptr]")
     f = []{};
     CHECK_NOTHROW(f());
 }
+
+TEST_CASE("hash", "[function_ptr, hash]")
+{
+    using f_type = ash::function_ptr<int(int, int)>;
+    using hash_type = std::hash<f_type>;
+    f_type f, g;
+    CHECK(hash_type{}(f) == hash_type{}(g));
+    g = add;
+    CHECK_FALSE(hash_type{}(f) == hash_type{}(g));
+    f = add;
+    CHECK(hash_type{}(f) == hash_type{}(g));
+}
