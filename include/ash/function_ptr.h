@@ -72,7 +72,7 @@ public:
         ptr_ = tmp;
     }
 
-    Ret operator()(Args&&... args) throw(std::bad_function_call)
+    Ret operator()(Args&&... args) const throw(std::bad_function_call)
     {
         if (not *this) {
             throw std::bad_function_call{};
