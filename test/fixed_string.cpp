@@ -146,3 +146,14 @@ TEST_CASE("swap", "[fixed_string]")
     CHECK(a == "wxyz");
     CHECK(w == "abcd");
 }
+
+TEST_CASE("find", "[fixed_string]")
+{
+    SECTION("single char") {
+        CHECK(S16{"hello"}.find('l') == 2);
+        CHECK(S16{"hello"}.find('l', 3) == 3);
+        CHECK(S16{"hello"}.find('h') == 0);
+        CHECK(S16{"hello"}.find('h', 1) == S16::npos);
+        CHECK(S16{"hello"}.find('x') == S16::npos);
+    }
+}

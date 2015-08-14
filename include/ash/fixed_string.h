@@ -32,13 +32,15 @@ class fixed_string : compareable<fixed_string<Capacity, CharT>>
 {
 public:
     using value_type = CharT;
-    using size_type = std::size_t;
+    using size_type = typename std::basic_string<CharT>::size_type;
     using reference = value_type&;
     using const_reference = const value_type&;
     using pointer = CharT*;
     using const_pointer = const CharT*;
     using iterator = CharT*;
     using const_iterator = const CharT*;
+
+    static const size_type npos;
 
 public:
     fixed_string() = default;
@@ -149,6 +151,18 @@ public:
     void clear()
     {
         data_[0] = '\0';
+    }
+
+    size_type find(CharT ch, size_type pos = 0) const
+    {
+        for (size_type i = pos; i != Capacity; ++i) {
+            if (data_[i] == ch) {
+                return i;
+            } else if (data_[i] == '\0') {
+                return npos;
+            }
+        }
+        return npos;
     }
 
     fixed_string& insert(size_type index, size_type count, CharT ch)
@@ -273,6 +287,9 @@ public:
 private:
     CharT data_[Capacity] = { 0 };
 };
+
+template<std::size_t C, typename CharT>
+const typename ash::fixed_string<C, CharT>::size_type ash::fixed_string<C, CharT>::npos = std::basic_string<CharT>::npos;
 
 template<std::size_t C, typename T>
 std::ostream& operator<<(std::ostream& s, const fixed_string<C, T>& src)
