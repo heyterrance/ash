@@ -32,9 +32,13 @@ class fixed_string : compareable<fixed_string<Capacity, CharT>>
 {
 public:
     using value_type = CharT;
+    using size_type = std::size_t;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = CharT*;
+    using const_pointer = const CharT*;
     using iterator = CharT*;
     using const_iterator = const CharT*;
-    using size_type = std::size_t;
 
 public:
     fixed_string() = default;
@@ -83,21 +87,21 @@ public:
     //
 
     constexpr
-    CharT& operator[](size_type pos)
+    reference operator[](size_type pos)
     {
         return data_[pos];
     }
 
     constexpr
-    const CharT& operator[](size_type pos) const
+    const_reference operator[](size_type pos) const
     {
         return data_[pos];
     }
 
-    constexpr       CharT& front()          { return data_[0]; }
-    constexpr const CharT& front() const    { return data_[0]; }
-    constexpr       CharT& back()           { return data_[length()]; }
-    constexpr const CharT& back() const     { return data_[length()]; }
+    constexpr       reference front()       { return data_[0]; }
+    constexpr const_reference front() const { return data_[0]; }
+    constexpr       reference back()        { return data_[length()]; }
+    constexpr const_reference back() const  { return data_[length()]; }
     constexpr const std::basic_string<CharT> str() const
     {
         return std::basic_string<CharT>(data_, length());
@@ -137,6 +141,10 @@ public:
     //
     // Operations
     //
+    void swap(fixed_string& src)
+    {
+        std::swap(src.data_, data_);
+    }
 
     void clear()
     {
@@ -289,5 +297,11 @@ struct hash<ash::fixed_string<C, CharT>>
         return h;
     }
 };
+
+template<std::size_t C, typename CharT>
+void swap(ash::fixed_string<C, CharT>& lhs, ash::fixed_string<C, CharT>& rhs)
+{
+    lhs.swap(rhs);
+}
 
 } // namespace std

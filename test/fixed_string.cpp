@@ -138,3 +138,11 @@ TEST_CASE("hashable", "[fixed_string, hash]")
     CHECK_FALSE(m["ABC"] == 8);
     CHECK(m["XYZ"] == 8);
 }
+
+TEST_CASE("swap", "[fixed_string]")
+{
+    S4 a{"abcd"}, w{"wxyz"};
+    std::swap(a, w);
+    CHECK(a == "wxyz");
+    CHECK(w == "abcd");
+}
