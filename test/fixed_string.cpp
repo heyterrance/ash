@@ -35,6 +35,33 @@ TEST_CASE("fixed string constexpr", "[fixed_string]")
     static_assert(s.end() - s.begin() == s.size(), "Bad iterators.");
 }
 
+TEST_CASE("fixed string constructors", "[fixed_string, constructor]")
+{
+    SECTION("default") {
+        S4 def{};
+        CHECK(def.length() == 0);
+        CHECK(def == "");
+    }
+    SECTION("char pointer") {
+        const char* src = "const char*";
+        CHECK(S16{src} == src);
+        CHECK(S16(src, 5) == "const");
+    }
+    SECTION("char array") {
+        const char src[] = "const array";
+        CHECK(S16{src} == src);
+        CHECK(S4{src} == "cons");
+    }
+    SECTION("repeated char") {
+        CHECK(S4(1, 'a') == "a");
+        CHECK(S4(5, 'a') == "aaaa");
+    }
+    SECTION("std::string") {
+        const std::string src{"const string"};
+        CHECK(S16{src} == src);
+    }
+}
+
 SCENARIO("fixed string insertions", "[fixed_string]")
 {
     GIVEN("an empty fixed_string") {
@@ -102,7 +129,7 @@ TEST_CASE("append", "[fixed_string]")
     }
 }
 
-TEST_CASE("hashable", "[fixed_string]")
+TEST_CASE("hashable", "[fixed_string, hash]")
 {
     std::unordered_map<ash::fixed_string<4>, char> m;
     m.emplace("ABC", 3);

@@ -44,6 +44,15 @@ public:
         fixed_string(src.c_str())
     { }
 
+    constexpr fixed_string(const char* s, size_type count)
+    {
+        size_type idx = 0;
+        while (idx != Capacity and *s != '\0' and count != 0) {
+            data_[idx++] = *(s++);
+            --count;
+        }
+    }
+
     constexpr fixed_string(const char* s)
     {
         size_type idx = 0;
