@@ -150,10 +150,20 @@ TEST_CASE("swap", "[fixed_string]")
 TEST_CASE("find", "[fixed_string]")
 {
     SECTION("single char") {
-        CHECK(S16{"hello"}.find('l') == 2);
-        CHECK(S16{"hello"}.find('l', 3) == 3);
-        CHECK(S16{"hello"}.find('h') == 0);
-        CHECK(S16{"hello"}.find('h', 1) == S16::npos);
-        CHECK(S16{"hello"}.find('x') == S16::npos);
+        const S16 hello{"hello"};
+        CHECK(hello.find('l') == 2);
+        CHECK(hello.find('l', 3) == 3);
+        CHECK(hello.find('h') == 0);
+        CHECK(hello.find('h', 1) == S16::npos);
+        CHECK(hello.find('x') == S16::npos);
+    }
+    SECTION("substring") {
+        const S16 hello{"hello"};
+        CHECK(hello.find("ello") == 1);
+        CHECK(hello.find("elloh") == S16::npos);
+
+        const S4 very{"very"};
+        CHECK(very.find("very") == 0);
+        CHECK(very.find("very", 1) == S4::npos);
     }
 }

@@ -153,6 +153,23 @@ public:
         data_[0] = '\0';
     }
 
+    size_type find(const CharT* s, size_type pos = 0) const
+    {
+        size_type d_idx = pos;
+        size_type s_idx = 0;
+        while (d_idx + s_idx != Capacity and s[s_idx] != '\0') {
+            if (data_[d_idx + s_idx] == s[s_idx]) {
+                // Matched a character.
+                ++s_idx;
+            } else {
+                // Restart search.
+                ++d_idx;
+                s_idx = 0;
+            }
+        }
+        return (s[s_idx] == '\0') ? d_idx : npos;
+    }
+
     size_type find(CharT ch, size_type pos = 0) const
     {
         for (size_type i = pos; i != Capacity; ++i) {
