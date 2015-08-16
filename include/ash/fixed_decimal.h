@@ -39,84 +39,88 @@ static_assert(scaling_factor<int, 10, 4, 3>::value == 1, "Wrong scaling factor."
 
 } // namespace details
 
-template<unsigned char E>
-class fixed_decimal : compareable<fixed_decimal<E>>
+template<unsigned char E, typename IntegerT = long long>
+class fixed_decimal : compareable<fixed_decimal<E, IntegerT>>
 {
 private:
-    using self_type = fixed_decimal<E>;
+    using self_type = fixed_decimal<E, IntegerT>;
+
+    template<unsigned char F>
+    using other_type = fixed_decimal<F, IntegerT>;
 
 public:
+    using value_type = IntegerT;
+
     template<unsigned char X, unsigned char Y>
-    using scaling_type = details::scaling_factor<long long, 10, X, Y>;
+    using scaling_type = details::scaling_factor<IntegerT, 10, X, Y>;
     template<unsigned char F> using self_mul = scaling_type<E, F>;
     template<unsigned char F> using other_mul = scaling_type<F, E>;
 
     static const constexpr unsigned char Exponent = E;
-    static const constexpr auto Multiplier = c_pow<long long, 10, E>::value;
+    static const constexpr auto Multiplier = c_pow<IntegerT, 10, E>::value;
 
 public:
     fixed_decimal() = default;
 
-    template <
-        typename T,
-        std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
+    template <typename T>
     constexpr
-    fixed_decimal(T value) :
-        value_(value * Multiplier)
+    explicit fixed_decimal(T value) :
+        value_{static_cast<IntegerT>(value * Multiplier)}
     { }
 
     template <
-        typename T,
-        std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
-    constexpr explicit
-    fixed_decimal(T numer, T denom) :
-        value_((numer * Multiplier * Multiplier) / (denom * Multiplier))
-    { }
-
-    template <
-        unsigned char F,
-        long long FM = other_mul<F>::value,
-        long long EM = self_mul<F>::value>
-    constexpr explicit
-    fixed_decimal(const fixed_decimal<F>& src) :
-        value_((FM * src.as_llong()) / EM)
+        unsigned char F, typename FInt,
+        IntegerT FM = other_mul<F>::value,
+        IntegerT EM = self_mul<F>::value>
+    constexpr
+    explicit fixed_decimal(const fixed_decimal<F, FInt>& src) :
+        value_{(FM * src.raw_value()) / EM}
     { }
 
 public:
-    static inline constexpr
-    long long multiplier()
+    static constexpr
+    value_type multiplier()
     {
         return Multiplier;
     }
 
-    static inline constexpr
+    static constexpr
     unsigned char exponent()
     {
         return Exponent;
     }
 
-    static inline constexpr
-    self_type from_llong(long long v, unsigned char vex = Exponent)
+    static constexpr
+    self_type from_raw_value(value_type v, unsigned char vex = Exponent)
     {
         if (vex < Exponent)
-            return from_llong(v * 10, vex + 1);
+            return from_raw_value(v * 10, vex + 1);
         else if (vex > Exponent)
-            return from_llong(v / 10, vex - 1);
+            return from_raw_value(v / 10, vex - 1);
         self_type r;
         r.value_ = v;
         return r;
     }
 
-    static inline constexpr
+    template<typename T>
+    static constexpr
+    self_type from_fraction(T numer, T denom)
+    {
+        return from_raw_value(
+                (numer * Multiplier * Multiplier) /
+                (denom * Multiplier));
+    }
+
+    static constexpr
     self_type from_string(const std::string& src)
     {
         return from_string(src.c_str());
     }
 
-    static inline constexpr
+    static constexpr
     self_type from_string(const char* src)
     {
-        long long mant = 0;
+        IntegerT mant{0};
         if (*src == '-')
             return -from_string(++src);
 
@@ -124,30 +128,28 @@ public:
             mant = (mant * 10) + (*src++ - '0');
         }
         if (*src++ == '\0')
-            return from_llong(mant * Multiplier);
-        long long frac = 0;
-        long long mul = Multiplier;
+            return from_raw_value(mant * Multiplier);
+        IntegerT frac{0};
+        IntegerT mul{Multiplier};
         while (*src != '\0' and mul != 0) {
             mul /= 10;
             frac += (*(src++) - '0') * mul;
         }
-        return from_llong(mant * Multiplier + frac);
+        return from_raw_value(mant * Multiplier + frac);
     }
 
 public:
     template<
-        unsigned char F,
-        long long FM = other_mul<F>::value,
-        long long EM = self_mul<F>::value>
+        unsigned char F, typename FInt,
+        IntegerT FM = other_mul<F>::value,
+        IntegerT EM = self_mul<F>::value>
     constexpr
-    bool operator==(const fixed_decimal<F>& src) const
+    bool operator==(const fixed_decimal<F, FInt>& rhs) const
     {
-        return (EM * value_) == (src.as_llong() * FM);
+        return (EM * value_) == (rhs.raw_value() * FM);
     }
 
-    template<
-        typename T,
-        std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
+    template<typename T>
     constexpr
     bool operator==(T value) const
     {
@@ -155,31 +157,27 @@ public:
     }
 
     template<
-        unsigned char F,
-        long long FM = other_mul<F>::value,
-        long long EM = self_mul<F>::value>
+        unsigned char F, typename FInt,
+        IntegerT FM = other_mul<F>::value,
+        IntegerT EM = self_mul<F>::value>
     constexpr
-    bool operator<(const fixed_decimal<F>& src) const
+    bool operator<(const fixed_decimal<F, FInt>& rhs) const
     {
-        return (EM * value_) < (src.as_llong() * FM);
+        return (EM * value_) < (rhs.raw_value() * FM);
     }
 
-    template<
-        typename T,
-        std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
+    template<typename T>
     constexpr
-    bool operator<(T value) const
+    bool operator<(T rhs) const
     {
-        return value_ < (value * Multiplier);
+        return value_ < (rhs * Multiplier);
     }
 
-    template<
-        typename T,
-        std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
+    template<typename T>
     constexpr
-    self_type& operator=(T value)
+    self_type& operator=(T rhs)
     {
-        value_ = value * Multiplier;
+        value_ = rhs * Multiplier;
         return *this;
     }
 
@@ -221,15 +219,15 @@ public:
     }
 
     constexpr
-    long long as_llong() const
+    value_type raw_value() const
     {
         return value_;
     }
 
     constexpr
-    void set_value(long long v)
+    operator double() const
     {
-        value_ = v;
+        return as_double();
     }
 
     constexpr
@@ -239,83 +237,84 @@ public:
     }
 
 private:
-    long long value_ = 0;
+    IntegerT value_ = 0;
 };
 
-template<
-    unsigned char E, typename T,
-    std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
-inline constexpr
-fixed_decimal<E> operator/(T d, const fixed_decimal<E>& src)
+template<unsigned char E, typename IntegerT, typename T>
+constexpr
+fixed_decimal<E, IntegerT> operator/(
+        T lhs, const fixed_decimal<E, IntegerT>& rhs)
 {
-    fixed_decimal<E> ret(d * src.multiplier());
-    ret.set_value(ret.as_llong() /src.as_llong());
-    return ret;
+    using return_type = fixed_decimal<E, IntegerT>;
+    return return_type::from_raw_value(
+            (lhs * rhs.multiplier() * return_type::multiplier()) /
+            rhs.raw_value());
 }
 
 template<
     unsigned char E,
     unsigned char F,
-    class ret_type = fixed_decimal<std::max(E, F)>,
-    long long EM = details::scaling_factor<long long, 10, E, F>::value,
-    long long FM = details::scaling_factor<long long, 10, F, E>::value>
-inline constexpr
-ret_type operator/(const fixed_decimal<E>& a, const fixed_decimal<F>& b)
+    typename IntegerT,
+    class ret_type = fixed_decimal<std::max(E, F), IntegerT>,
+    IntegerT EM = details::scaling_factor<IntegerT, 10, E, F>::value,
+    IntegerT FM = details::scaling_factor<IntegerT, 10, F, E>::value>
+constexpr
+ret_type operator/(
+        const fixed_decimal<E, IntegerT>& lhs,
+        const fixed_decimal<F, IntegerT>& rhs)
 {
-    ret_type r0(a.as_llong() * EM);
-    return r0 / (b.as_llong() * FM);
+    ret_type r0(lhs.raw_value() * EM);
+    return r0 / (rhs.raw_value() * FM);
 }
 
-template<
-    unsigned char E, typename T,
-    std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
-inline constexpr
-fixed_decimal<E> operator/(const fixed_decimal<E>& src, T d)
+template<unsigned char E, typename IntegerT, typename T>
+constexpr
+fixed_decimal<E, IntegerT> operator/(
+        const fixed_decimal<E, IntegerT>& lhs,
+        T rhs)
 {
-    return fixed_decimal<E>::from_llong(src.as_llong() / d);
+    return fixed_decimal<E, IntegerT>::from_raw_value(lhs.raw_value() / rhs);
 }
 
 template<
     unsigned char E,
     unsigned char F,
-    class ret_type = fixed_decimal<std::max(E, F)>,
-    long long EM = details::scaling_factor<long long, 10, E, F>::value,
-    long long FM = details::scaling_factor<long long, 10, F, E>::value>
-inline constexpr
+    typename IntegerT,
+    class ret_type = fixed_decimal<std::max(E, F), IntegerT>,
+    IntegerT EM = details::scaling_factor<IntegerT, 10, E, F>::value,
+    IntegerT FM = details::scaling_factor<IntegerT, 10, F, E>::value>
+constexpr
 ret_type operator*(
-        const fixed_decimal<E>& a,
-        const fixed_decimal<F>& b)
+        const fixed_decimal<E, IntegerT>& a,
+        const fixed_decimal<F, IntegerT>& b)
 {
-    constexpr long long RM = ret_type::multiplier();
-    return ret_type::from_llong(
-            (a.as_llong() * EM * b.as_llong() * FM) / RM);
+    constexpr IntegerT RM{ret_type::multiplier()};
+    return ret_type::from_raw_value(
+            (a.raw_value() * EM * b.raw_value() * FM) / RM);
 }
 
 
-template<
-    unsigned char E, typename T,
-    std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
-inline constexpr
-fixed_decimal<E> operator*(T m, const fixed_decimal<E>& src)
+template<unsigned char E, typename IntegerT, typename T>
+constexpr
+fixed_decimal<E, IntegerT> operator*(
+        T rhs, const fixed_decimal<E, IntegerT>& lhs)
 {
-    return fixed_decimal<E>::from_llong(src.as_llong() * m);
+    return fixed_decimal<E, IntegerT>::from_raw_value(lhs.raw_value() * rhs);
 }
 
-template<
-    unsigned char E, typename T,
-    std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
-inline constexpr
-fixed_decimal<E> operator*(const fixed_decimal<E>& src, T m)
+template<unsigned char E, typename IntegerT, typename T>
+constexpr
+fixed_decimal<E, IntegerT> operator*(
+        const fixed_decimal<E, IntegerT>& lhs, T rhs)
 {
-    return m * src;
+    return rhs * lhs;
 }
 
-template<unsigned char E>
-inline
-std::ostream& operator<<(std::ostream& out, const fixed_decimal<E>& src)
+template<unsigned char E, typename IntegerT>
+std::ostream& operator<<(std::ostream& out, const fixed_decimal<E, IntegerT>& src)
 {
-    long long val = src.as_llong();
-    long long divisor = src.multiplier();
+    auto val = src.raw_value();
+    auto divisor = src.multiplier();
     for (unsigned dig = 0; dig != src.exponent() + 1; ++dig) {
         out << (val / divisor);
         if (dig == 0)
@@ -326,14 +325,17 @@ std::ostream& operator<<(std::ostream& out, const fixed_decimal<E>& src)
     return out;
 }
 
+template<unsigned E>
+using ufixed_decimal = fixed_decimal<E, unsigned long long>;
+
 } // namespace ash
 
 namespace std {
 
-template<unsigned char E>
-struct numeric_limits<ash::fixed_decimal<E>> : numeric_limits<long long>
+template<unsigned char E, typename IntegerT>
+struct numeric_limits<ash::fixed_decimal<E, IntegerT>> : numeric_limits<IntegerT>
 {
-    using type = ash::fixed_decimal<E>;
+    using type = ash::fixed_decimal<E, IntegerT>;
 
     static const constexpr bool is_integer = false;
     static const constexpr bool is_specialized = true;
@@ -341,14 +343,18 @@ struct numeric_limits<ash::fixed_decimal<E>> : numeric_limits<long long>
     static constexpr
     type min()
     {
-        return type::from_llong(numeric_limits<long long>::min());
+        return type::from_raw_value(numeric_limits<IntegerT>::min());
     }
 
     static constexpr
     type max()
     {
-        return type::from_llong(numeric_limits<long long>::max());
+        return type::from_raw_value(numeric_limits<IntegerT>::max());
     }
 };
+
+template<unsigned char E, typename IntegerT>
+struct is_arithmetic<ash::fixed_decimal<E, IntegerT>> : is_arithmetic<IntegerT>
+{ };
 
 } // namespace std
