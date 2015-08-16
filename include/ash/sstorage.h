@@ -36,6 +36,7 @@ public:
     using buffer_type = typename std::aligned_storage_t<sizeof(T), alignof(T)>;
     using storage_type = std::array<buffer_type, Capacity>;
     using reference = T&;
+    using const_reference = const T&;
     using size_type = typename storage_type::size_type;
 
 public:
