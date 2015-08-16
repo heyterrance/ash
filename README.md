@@ -21,13 +21,13 @@ auto e = ash::fixed_decimal<9>::from_string("2.718281828");
 std::cout << e << std::cout; // Prints "2.718281828"
 ```
 
-### `ash::fixed_string<std::size_t Capacity>`
+### `ash::fixed_string`
 
 ```
-template<std::size_t  Capacity>
+template<std::size_t Capacity, typename CharT = char>
 class fixed_string
 ```
-A char array of size `Capacity` partially matching the `std::string` interface. Guarantees null-termination unless the maximum capacity of characters is reached.
+A char array of size `Capacity` partially implementing the `std::basic_string` interface. Guarantees null-termination unless the maximum capacity of characters is reached.
 
 ```
 #include <ash/fixed_string>
