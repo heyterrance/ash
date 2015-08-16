@@ -3,7 +3,12 @@ A handful of useful header-only classes.
 
 ## Usage
 
-### `fixed_decimal<unsigned char Prec>`
+### `ash::fixed_decimal`
+
+```
+template<unsigned  char Prec>
+class fixed_decimal
+```
 A real number precise to `Prec` decimal places.
 
 ```
@@ -16,8 +21,13 @@ auto e = ash::fixed_decimal<9>::from_string("2.718281828");
 std::cout << e << std::cout; // Prints "2.718281828"
 ```
 
-### `fixed_string<std::size_t Capacity>`
-A char array of size `Capacity` partially matching the `std::string` interface. Does not guarantee null-termination.
+### `ash::fixed_string<std::size_t Capacity>`
+
+```
+template<std::size_t  Capacity>
+class fixed_string
+```
+A char array of size `Capacity` partially matching the `std::string` interface. Guarantees null-termination unless the maximum capacity of characters is reached.
 
 ```
 #include <ash/fixed_string>
@@ -26,7 +36,12 @@ ash::fixed_string<20> hi{"Hello, "};
 hi.append("World").append('!');
 ```
 
-### `memory_pooled<typename T>`
+### `ash::memory_pooled`
+
+```
+template<class Base>
+class memory_pooled
+```
 Saves any `new`'d instance of `T` when it is deleted, allowing the memory to be reused.
 
 ```
@@ -41,10 +56,18 @@ assert(a == b);
 Abc::fill_pool(800); // Add 800 Abcs to the pool.
 ```
 
-### `stable_storage<typename T, std::size_t ChunkSize>` and `stable_chunk<typename T, std::size_t Capacity>`
+### `ash::stable_storage` and `ash::stable_chunk`
+
+```
+template<typename T, std::size_t ChunkSize>
+class stable_storage
+
+template<typename T, std::size_t Capacity>
+class stable_chunk
+```
 
 Create objects with an unchanging position in memory.
-`stable_chunk` is a region of uninitialized storage.
+`stable_chunk` is a fixed sized region of uninitialized storage.
 `stable_storage` uses `stable_chunk` to implement lists of uninitialized storage.
 
 ```
@@ -70,7 +93,13 @@ while (sstore.chunk_count() != 3) {
 }
 ```
 
-### `double_buffer<typename T>`
+### `ash::double_buffer`
+
+```
+template<typename T>
+class double_buffer
+```
+
 A thread-safe, single producer single consumer double buffer. Data may always
 be written to the buffer. Only the latest data may be read.
 
@@ -93,7 +122,15 @@ assert(new_data);
 assert(dest == "G'day, Sydney");
 ```
 
-### `function_ptr<typename R, typename... Args>`
+### `ash::function_ptr`
+
+```
+template<typename>
+class function_ptr; // Undefined.
+
+template<typename R, typename... Args>
+class function_ptr<R(Args...)>
+```
 Function pointer wrapper with similar interface to `std::function`.
 
 ```
