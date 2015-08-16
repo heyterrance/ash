@@ -34,6 +34,9 @@ A char array of size `Capacity` partially implementing the `std::basic_string` i
 
 ash::fixed_string<20> hi{"Hello, "};
 hi.append("World").append('!');
+
+assert(hi.find("ello") == 1);
+assert(hi.find("Hola") == ash::fixed_string<20>::npos);
 ```
 
 ### `ash::memory_pooled`
