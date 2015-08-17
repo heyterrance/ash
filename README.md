@@ -6,10 +6,10 @@ A handful of useful header-only classes.
 ### `ash::fixed_decimal`
 
 ```
-template<unsigned  char Prec>
+template<unsigned char Precision>
 class fixed_decimal
 ```
-A real number precise to `Prec` decimal places.
+A real number precise to `Precision` decimal places.
 
 ```
 #include <ash/fixed_decimal.h>
@@ -70,7 +70,7 @@ class stable_chunk
 ```
 
 Create objects with an unchanging position in memory.
-`stable_chunk` is a fixed sized region of uninitialized storage.
+`stable_chunk` is a fixed sized region of uninitialized storage. Calls desturctor for all created elements.
 `stable_storage` uses `stable_chunk` to implement lists of uninitialized storage.
 
 ```
