@@ -198,7 +198,7 @@ public:
     constexpr
     self_type operator++(int)
     {
-        const self_type ret(*this);
+        const self_type ret{*this};
         ++(*this);
         return ret;
     }
@@ -213,7 +213,7 @@ public:
     constexpr
     self_type operator--(int)
     {
-        const self_type ret(*this);
+        const self_type ret{*this};
         --(*this);
         return ret;
     }
@@ -237,7 +237,7 @@ public:
     }
 
 private:
-    IntegerT value_ = 0;
+    IntegerT value_{0};
 };
 
 template<unsigned char E, typename IntegerT, typename T>
@@ -263,8 +263,7 @@ ret_type operator/(
         const fixed_decimal<E, IntegerT>& lhs,
         const fixed_decimal<F, IntegerT>& rhs)
 {
-    ret_type r0(lhs.raw_value() * EM);
-    return r0 / (rhs.raw_value() * FM);
+    return ret_type{lhs.raw_value() * EM} / (rhs.raw_value() * FM);
 }
 
 template<unsigned char E, typename IntegerT, typename T>
@@ -336,6 +335,7 @@ template<unsigned char E, typename IntegerT>
 struct numeric_limits<ash::fixed_decimal<E, IntegerT>> : numeric_limits<IntegerT>
 {
     using type = ash::fixed_decimal<E, IntegerT>;
+    using base_type = numeric_limits<IntegerT>;
 
     static const constexpr bool is_integer = false;
     static const constexpr bool is_specialized = true;
@@ -343,13 +343,13 @@ struct numeric_limits<ash::fixed_decimal<E, IntegerT>> : numeric_limits<IntegerT
     static constexpr
     type min()
     {
-        return type::from_raw_value(numeric_limits<IntegerT>::min());
+        return type::from_raw_value(base_type::min());
     }
 
     static constexpr
     type max()
     {
-        return type::from_raw_value(numeric_limits<IntegerT>::max());
+        return type::from_raw_value(base_type::max());
     }
 };
 
