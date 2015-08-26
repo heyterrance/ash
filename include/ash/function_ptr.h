@@ -78,6 +78,11 @@ public:
         ptr_ = tmp;
     }
 
+    void assign(pointer f) noexcept
+    {
+        ptr_ = f;
+    }
+
     Ret operator()(Args&&... args) const throw(std::bad_function_call)
     {
         if (not *this) {
