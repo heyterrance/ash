@@ -124,6 +124,39 @@ bool new_data = buf.try_read(dest);
 assert(new_data);
 assert(dest == "G'day, Sydney");
 ```
+### `ash::optimistic_buffer`
+
+```
+template<typename T, std::size_t NPages = 2>
+class optimistic_buffer
+```
+
+A thread-safe, single producer, multiple consumer N-buffer. Data may always be written to the buffer. Readers receive the latest data, which may be invalid.
+
+```
+#include <ash/optimistic_buffer.h>
+
+// A 1-page buffer of std::string.
+ash::optimistic_buffer<std::string, 1> buf;
+std::thread thd([&]{
+    buf.write("Hello, World");
+    buf.write("Goodbye");
+});
+
+std::string dest;
+bool valid_read = buf.try_read(dest);
+if (valid_read) {
+    assert(
+        dest == "" or // No data written, read default value.
+        dest == "Hello, World" or
+        dest == "Goodbye");
+}
+
+// Try 1,200 times to get valid data.
+static constexpr unsigned n_retires = 1200;
+bool valid_eventually = buf.try_read(dest, n_retries);
+```
+
 
 ### `ash::function_ptr`
 
