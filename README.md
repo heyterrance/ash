@@ -141,6 +141,9 @@ ash::optimistic_buffer<std::string, 1> buf;
 std::thread thd([&]{
     buf.write("Hello, World");
     buf.write("Goodbye");
+    buf.write_with([](std::string& dst){
+        dst.append("!");
+    });
 });
 
 std::string dest;
@@ -149,7 +152,8 @@ if (valid_read) {
     assert(
         dest == "" or // No data written, read default value.
         dest == "Hello, World" or
-        dest == "Goodbye");
+        dest == "Goodbye" or
+        dest == "Goodbye!");
 }
 
 // Try 1,200 times to get valid data.
