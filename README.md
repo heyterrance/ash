@@ -27,7 +27,9 @@ std::cout << e << std::cout; // Prints "2.718281828"
 template<std::size_t Capacity, typename CharT = char>
 class fixed_string
 ```
-A char array of size `Capacity` partially implementing the `std::basic_string` interface. Guarantees null-termination unless the maximum capacity of characters is reached.
+A char array of size `Capacity` partially implementing the `std::basic_string`
+interface. Guarantees null-termination unless the maximum capacity of
+characters is reached.
 
 ```
 #include <ash/fixed_string>
@@ -45,7 +47,8 @@ assert(hi.find("Hola") == ash::fixed_string<20>::npos);
 template<class Base>
 class memory_pooled
 ```
-Saves any `new`'d instance of `T` when it is deleted, allowing the memory to be reused.
+Saves any `new`'d instance of `T` when it is deleted, allowing the memory to be
+reused.
 
 ```
 #include <ash/memory_pool.h>
@@ -70,8 +73,9 @@ class stable_chunk
 ```
 
 Create objects with an unchanging position in memory.
-`stable_chunk` is a fixed sized region of uninitialized storage. Calls desturctor for all created elements.
-`stable_storage` uses `stable_chunk` to implement lists of uninitialized storage.
+`stable_chunk` is a fixed sized region of uninitialized storage. Calls
+destructor for all created elements. `stable_storage` uses `stable_chunk` to
+implement lists of uninitialized storage.
 
 ```
 #include <ash/sstorage.h>
@@ -131,7 +135,8 @@ template<typename T, std::size_t NPages = 2>
 class optimistic_buffer
 ```
 
-A thread-safe, single producer, multiple consumer N-buffer. Data may always be written to the buffer. Readers receive the latest data, which may be invalid.
+A thread-safe, single producer, multiple consumer N-buffer. Data may always be
+written to the buffer. Readers receive the latest data, which may be invalid.
 
 ```
 #include <ash/optimistic_buffer.h>
