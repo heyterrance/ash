@@ -20,6 +20,7 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
+#include <utility>
 
 namespace ash {
 
@@ -80,8 +81,8 @@ public:
     bool try_read(value_type& dest, unsigned retries=0) noexcept
     {
         const auto& page = pages_[rd_index_];
-        const auto seq = page.sequence_.load(std::memory_order_consume);
-        const bool is_writing = (seq & WR_LOCK_BYTE) != 0;
+        const auto seq = page.sequence_.load(std::memory_order_acquire);
+        const bool is_writing = has_wr_bit_set(seq);
         if (not is_writing)
             dest = page.value_;
         const bool valid_value =
@@ -106,13 +107,20 @@ private:
     {
         auto& page = pages_[wr_index_];
         ++wr_sequence_;
-        const bool has_wr_set = (wr_sequence_ & WR_LOCK_BYTE) != 0;
-        const auto next_seq = has_wr_set ? sequence_type{0} : wr_sequence_;
+        const auto next_seq =
+            has_wr_bit_set(wr_sequence_) ? sequence_type{0} :
+            wr_sequence_;
         page.sequence_.store(next_seq, std::memory_order_relaxed);
 
-        // Switch indices.
-        rd_index_ = wr_index_;
-        wr_index_ = (wr_index_ + 1) % pages_.size();
+        // Update read and write indices.
+        rd_index_ = std::exchange(wr_index_, (wr_index_ + 1) % pages_.size());
+    }
+
+    template<typename U>
+    static constexpr
+    bool has_wr_bit_set(U&& u)
+    {
+        return (u & WR_LOCK_BYTE) != 0;
     }
 
 private:
