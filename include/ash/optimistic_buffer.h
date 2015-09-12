@@ -24,40 +24,97 @@
 
 namespace ash {
 
-namespace detail {
-
-template<typename T, typename SeqT>
+template<typename T, typename SeqT = unsigned>
 struct optimistic_page
 {
+public:
+    using value_type = T;
+    using size_type = std::size_t;
+
+public:
+    template<typename Func>
+    void write_with(Func&& f)
+    {
+        auto& dest = begin_write();
+        f(dest);
+        end_write();
+    }
+
+    template<typename... Args>
+    void emplace(Args&&... args)
+    {
+        write_with([&](value_type& dest){
+                dest = value_type(std::forward<Args>(args)...);
+            });
+    }
+
+    void write(const value_type& src)
+    {
+        write_with([&](value_type& dest){ dest = src; });
+    }
+
+    void wait_read(value_type& dest) const noexcept
+    {
+        while (not try_read_impl(dest)) continue;
+    }
+
+    bool try_read(value_type& dest, unsigned retries=0) const noexcept
+    {
+        do {
+            if (try_read_impl(dest))
+                return true;
+        } while (0 != retries--);
+        return false;
+    }
+
+    value_type& begin_write() noexcept
+    {
+        sequence_.fetch_add(1, std::memory_order_relaxed);
+        return value_;
+    }
+
+    void end_write() noexcept
+    {
+        sequence_.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    bool try_read_impl(value_type& dest) const noexcept
+    {
+        // Odd sequences numbers mean page is being written to.
+        const auto seq = sequence_.load(std::memory_order_acquire);
+        const bool is_writing = (seq % 2) != 0;
+        if (not is_writing)
+            dest = value_;
+        return
+            (not is_writing) and
+            (seq == sequence_.load(std::memory_order_acquire));
+    }
+
+private:
     std::atomic<SeqT> sequence_{0};
     T value_;
 };
 
-template<typename T>
-struct write_lock_bit :
-    std::integral_constant<std::size_t, CHAR_BIT * sizeof(T) - 1>
-{ };
-
-} // namespace detail
-
-template<typename T, std::size_t NPages=2>
+template<typename T, std::size_t NPages = 2>
 class optimistic_buffer
 {
 private:
     using sequence_type = unsigned;
-    using page_type = detail::optimistic_page<T, sequence_type>;
+    using page_type = optimistic_page<T, sequence_type>;
     using value_type = T;
     using size_type = std::size_t;
-
-    static constexpr std::size_t WR_LOCK_BIT =
-        detail::write_lock_bit<sequence_type>::value;
-    static constexpr auto WR_LOCK_BYTE = sequence_type{1} << WR_LOCK_BIT;
 
 public:
     optimistic_buffer() = default;
 
     optimistic_buffer(const optimistic_buffer&) = delete;
     optimistic_buffer& operator=(const optimistic_buffer&) = delete;
+
+    static constexpr
+    size_type capacity()
+    {
+        return NPages;
+    }
 
     template<typename Func>
     void write_with(Func&& f)
@@ -70,7 +127,9 @@ public:
     template<typename... Args>
     void emplace(Args&&... args)
     {
-        write_with([&](value_type& dest) { dest = value_type(std::forward<Args>(args)...); });
+        write_with([&](value_type& dest){
+                dest = value_type(std::forward<Args>(args)...);
+            });
     }
 
     void write(const value_type& src)
@@ -78,55 +137,47 @@ public:
         write_with([&](value_type& dest){ dest = src; });
     }
 
-    bool try_read(value_type& dest, unsigned retries=0) noexcept
+    void wait_read(value_type& dest) const noexcept
     {
-        const auto& page = pages_[rd_index_];
-        const auto seq = page.sequence_.load(std::memory_order_acquire);
-        const bool is_writing = has_wr_bit_set(seq);
-        if (not is_writing)
-            dest = page.value_;
-        const bool valid_value =
-            (not is_writing) and
-            (seq == page.sequence_.load(std::memory_order_acquire));
-        return
-            (valid_value) ? true :
-            (retries == 0) ? false :
-            try_read(dest, retries - 1);
+        while (not try_read_impl(dest)) continue;
+    }
+
+    bool try_read(value_type& dest, unsigned retries=0) const noexcept
+    {
+        do {
+            if (try_read_impl(dest))
+                return true;
+        } while (0 != retries--);
+        return false;
     }
 
 private:
     value_type& begin_write() noexcept
     {
         auto& page = pages_[wr_index_];
-        wr_sequence_ =
-            page.sequence_.fetch_or(WR_LOCK_BYTE, std::memory_order_relaxed);
-        return page.value_;
+        return page.begin_write();
     }
 
     void end_write() noexcept
     {
         auto& page = pages_[wr_index_];
-        ++wr_sequence_;
-        const auto next_seq =
-            has_wr_bit_set(wr_sequence_) ? sequence_type{0} :
-            wr_sequence_;
-        page.sequence_.store(next_seq, std::memory_order_relaxed);
+        page.end_write();
 
         // Update read and write indices.
-        rd_index_ = std::exchange(wr_index_, (wr_index_ + 1) % pages_.size());
+        const auto next_wr_idx = (wr_index_ + 1) % pages_.size();
+        rd_index_ = std::exchange(wr_index_, next_wr_idx);
     }
 
-    template<typename U>
-    static constexpr
-    bool has_wr_bit_set(U&& u)
+    bool try_read_impl(value_type& dest) const noexcept
     {
-        return (u & WR_LOCK_BYTE) != 0;
+        const auto& page = pages_[rd_index_];
+        return page.try_read(dest);
     }
 
 private:
     std::array<page_type, NPages> pages_;
-    size_type wr_index_{0}, rd_index_{0};
-    sequence_type wr_sequence_{0};
+    size_type wr_index_{0};
+    volatile size_type rd_index_{0};
 };
 
 } // namespace ash
