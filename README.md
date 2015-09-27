@@ -5,13 +5,13 @@ A handful of useful header-only classes.
 
 ### `ash::fixed_decimal`
 
-```
+```cpp
 template<unsigned char Precision>
 class fixed_decimal
 ```
 A real number precise to `Precision` decimal places.
 
-```
+```cpp
 #include <ash/fixed_decimal.h>
 
 ash::fixed_decimal<3> n{50.7};
@@ -23,7 +23,7 @@ std::cout << e << std::cout; // Prints "2.718281828"
 
 ### `ash::fixed_string`
 
-```
+```cpp
 template<std::size_t Capacity, typename CharT = char>
 class fixed_string
 ```
@@ -31,7 +31,7 @@ A char array of size `Capacity` partially implementing the `std::basic_string`
 interface. Guarantees null-termination unless the maximum capacity of
 characters is reached.
 
-```
+```cpp
 #include <ash/fixed_string>
 
 ash::fixed_string<20> hi{"Hello, "};
@@ -43,14 +43,14 @@ assert(hi.find("Hola") == ash::fixed_string<20>::npos);
 
 ### `ash::memory_pooled`
 
-```
+```cpp
 template<class Base>
 class memory_pooled
 ```
 Saves any `new`'d instance of `T` when it is deleted, allowing the memory to be
 reused.
 
-```
+```cpp
 #include <ash/memory_pool.h>
 
 struct Abc : ash::memory_pooled<Abc> { };
@@ -64,7 +64,7 @@ Abc::fill_pool(800); // Add 800 Abcs to the pool.
 
 ### `ash::stable_storage` and `ash::stable_chunk`
 
-```
+```cpp
 template<typename T, std::size_t ChunkSize>
 class stable_storage
 
@@ -77,7 +77,7 @@ Create objects with an unchanging position in memory.
 destructor for all created elements. `stable_storage` uses `stable_chunk` to
 implement lists of uninitialized storage.
 
-```
+```cpp
 #include <ash/sstorage.h>
 
 ash::stable_chunk<int, 2> schunk;
@@ -102,7 +102,7 @@ while (sstore.chunk_count() != 3) {
 
 ### `ash::double_buffer`
 
-```
+```cpp
 template<typename T>
 class double_buffer
 ```
@@ -110,7 +110,7 @@ class double_buffer
 A thread-safe, single producer single consumer double buffer. Data may always
 be written to the buffer. Only the latest data may be read.
 
-```
+```cpp
 #include <ash/double_buffer.h>
 
 ash::double_buffer<std::string> buf;
@@ -130,7 +130,7 @@ assert(dest == "G'day, Sydney");
 ```
 ### `ash::optimistic_buffer`
 
-```
+```cpp
 template<typename T, std::size_t NPages = 2>
 class optimistic_buffer
 ```
@@ -138,7 +138,7 @@ class optimistic_buffer
 A thread-safe, single producer, multiple consumer N-buffer. Data may always be
 written to the buffer. Readers receive the latest data, which may be invalid.
 
-```
+```cpp
 #include <ash/optimistic_buffer.h>
 
 // A 1-page buffer of std::string.
@@ -169,7 +169,7 @@ bool valid_eventually = buf.try_read(dest, n_retries);
 
 ### `ash::function_ptr`
 
-```
+```cpp
 template<typename>
 class function_ptr; // Undefined.
 
@@ -178,7 +178,7 @@ class function_ptr<R(Args...)>
 ```
 Function pointer wrapper with similar interface to `std::function`.
 
-```
+```cpp
 #include <ash/function_ptr.h>
 
 auto mul2 = [](int x){ return x * 2; };
