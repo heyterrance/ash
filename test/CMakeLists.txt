@@ -9,6 +9,7 @@ add_executable(
     fixed_string.cpp
     function_ptr.cpp
     memory_pool.cpp
+    multipart.cpp
     optimistic_buffer.cpp
     sstorage.cpp
 )

@@ -187,5 +187,27 @@ ash::function_ptr<int(int)> f{mul2};
 assert(f(5) == mul2(5));
 ```
 
+### `ash::multipart`
+A container of pointers for each type. Allows related data to be contained in non-contingous blocks of memory.
+
+```cpp
+template<class... Types> multipart
+```
+
+```cpp
+// Default construct each type.
+ash::multipart<std::string, int, char> mp1;
+
+// Initialize each type to nullptr.
+ash::multipart<int, char, double> mp2;
+
+mp2.make<int>(2001); // Allocate and intialize the integer.
+
+assert(mp2.get<int>() == 2001);
+
+// Other types are still null.
+assert(mp2.get_ptr<double>() == nullptr);
+```
+
 ## Authors
 Terrance Howard <heyterrance@gmail.com>
