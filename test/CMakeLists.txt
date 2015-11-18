@@ -8,6 +8,7 @@ add_executable(
     fixed_decimal.cpp
     fixed_string.cpp
     function_ptr.cpp
+    keep_val.cpp
     memory_pool.cpp
     multipart.cpp
     optimistic_buffer.cpp

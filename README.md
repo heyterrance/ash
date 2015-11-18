@@ -3,6 +3,30 @@ A handful of useful header-only classes.
 
 ## Usage
 
+### `ash::keep_val`
+
+```cpp
+template<typename T, T Value>
+class keep_val
+```
+Once `Value` is stored it cannot change.
+
+```cpp
+#include <ash/keep_val.h>
+
+ash::keep_int<8> k{0};
+while (++k != 8) continue;
+assert(k == 8);
+assert(++k == 8);
+
+keep_true kt;
+assert(!kt);
+kt = true;
+assert(kt);
+kt = false;
+assert(kt);
+```
+
 ### `ash::fixed_decimal`
 
 ```cpp
