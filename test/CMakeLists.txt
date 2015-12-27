@@ -13,4 +13,5 @@ add_executable(
     multipart.cpp
     optimistic_buffer.cpp
     sstorage.cpp
+    tmp_buffer.cpp
 )

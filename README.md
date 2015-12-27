@@ -233,5 +233,25 @@ assert(mp2.get<int>() == 2001);
 assert(mp2.get_ptr<double>() == nullptr);
 ```
 
+### `ash::unique_tmp_buffer`
+RAII wrapper for `std::get_temporary_buffer` and `std::return_temporary_buffer`.
+
+```cpp
+template<class T> unique_tmp_buffer
+```
+
+```cpp
+// Temporary buffer of up to 80 floats.
+ash::unique_tmp_buffer<float> buffer{80};
+
+std::fill(buffer.begin(), buffer.end(), 0.0f);
+
+assert(buffer.size() == std::distance(buffer.begin(), buffer.end()));
+
+// Move constructor.
+ash::unique_tmp_buffer other{std::move(buffer)};
+assert(buffer.data() == nullptr);
+```
+
 ## Authors
 Terrance Howard <heyterrance@gmail.com>
