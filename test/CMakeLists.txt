@@ -5,6 +5,7 @@ add_executable(
     ash_test
     main.cpp
     double_buffer.cpp
+    dup_tuple.cpp
     fixed_decimal.cpp
     fixed_string.cpp
     function_ptr.cpp

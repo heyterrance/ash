@@ -124,6 +124,14 @@ while (sstore.chunk_count() != 3) {
 }
 ```
 
+### `ash::dup_pair` and `ash::dup_tuple`
+```cpp
+template<typename T> dup_pair;
+template<typename T, std::size_t N> dup_tuple;
+```
+Typedefs for `std::pair` and `std::tuple` of a single type. Defined in `<ash/dup_tuple.h`.
+
+
 ### `ash::double_buffer`
 
 ```cpp
