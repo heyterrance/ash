@@ -1,5 +1,4 @@
-include_directories(${AX_INCLUDE_PATH})
-include_directories(${EXT_INCLUDE_PATH})
+include_directories(${ASH_INCLUDE_PATH})
 
 add_executable(
     ash_test
